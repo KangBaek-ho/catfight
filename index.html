@@ -30,7 +30,8 @@ canvas{position:fixed;inset:0;display:block;z-index:0}
 #sh span{flex:1}
 #sx{background:#e53935;color:#fff;border:0;width:36px;height:36px;border-radius:8px;font-size:18px;font-weight:800;cursor:pointer}
 #tabs{margin:10px 0;display:flex;gap:8px}
-#tabs b{background:#3a4fa8;padding:5px 14px;border-radius:8px;font-size:15px}
+#tabs button{background:#243b8a;color:#fff;border:0;padding:6px 14px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+#tabs button.on{background:#3a4fa8;box-shadow:inset 0 -3px 0 #ffb300}
 #sl{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .card{background:#243b8a;border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid transparent}
 .card.on{border-color:#ffb300}
@@ -39,15 +40,17 @@ canvas{position:fixed;inset:0;display:block;z-index:0}
 .card button.no{background:#6b7280;color:#ddd}
 .card button.eq{background:#2e7d32;color:#fff;cursor:default}
 #sn{grid-column:1/-1;margin:4px 0 0;text-align:center;color:#ffe082;font-weight:700}
+#fs{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:10;background:var(--panel);color:var(--ink);border:2px solid var(--bd);border-radius:10px;padding:8px 12px;font-size:15px;font-weight:700;cursor:pointer}
 #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .4s}
 </style></head><body>
 <div id="hud"><div class="bar"><b>🐱 나 (내 체력) <span id="n1" style="font-size:22px">100</span></b><i><u id="h1"></u></i></div><div class="bar r"><b style="display:block;text-align:right">상대 😼 <span id="rt"></span> <span id="n2" style="font-size:22px">100</span></b><i><u id="h2"></u></i></div></div>
 <div id="rank"></div>
+<button id="fs">⛶ 전체화면</button>
 <div id="skins"></div>
 <div id="msg"></div>
 <div id="help"></div>
 <div id="over"><h2 id="ot"></h2><p id="os"></p><button id="again">🔄 다시 하기 (R)</button><button id="lobby">로비로</button></div>
-<div id="shop"><div id="sw"><div id="sh"><span>🛒 상점 &gt; 스킨</span><b id="sg"></b><button id="sx">✕</button></div><div id="tabs"><b>🎨 스킨</b></div><div id="sl"></div></div></div>
+<div id="shop"><div id="sw"><div id="sh"><span id="st">🛒 상점 &gt; 스킨</span><b id="sg"></b><button id="sx">✕</button></div><div id="tabs"><button data-t="s" class="on">🎨 스킨</button><button data-t="g">🥊 장갑</button></div><div id="sl"></div></div></div>
 <div id="flash"></div>
 <script>/**
  * @license
@@ -100,9 +103,9 @@ const rl=new THREE.PointLight(0xffffff,.7,70);rl.position.set(X0,14,0);S.add(rl)
 // ---------- 고양이 ----------
 const sp=new THREE.SphereGeometry(1,16,12);
 function mkCat(c,c2){
-  const cm=[],bm=[],gm=[];
+  const cm=[],bm=[],gm=[],gl=[];
   const g=new THREE.Group();
-  const m=(geo,col,x,y,z,sc,p)=>{const o=new THREE.Mesh(geo,mat(col));if(col===c)cm.push(o.material);if(col===c2)bm.push(o.material);if(col===0xe53935)gm.push(o.material);o.position.set(x,y,z);if(sc)o.scale.set(sc[0],sc[1],sc[2]);o.castShadow=true;(p||g).add(o);return o};
+  const m=(geo,col,x,y,z,sc,p)=>{const o=new THREE.Mesh(geo,mat(col));if(col===c)cm.push(o.material);if(col===c2)bm.push(o.material);if(col===0xe53935){gm.push(o.material);gl.push(o)}o.position.set(x,y,z);if(sc)o.scale.set(sc[0],sc[1],sc[2]);o.castShadow=true;(p||g).add(o);return o};
   m(sp,c,0,1.5,0,[.75,1,.6]);m(sp,c2,0,1.4,.3,[.5,.75,.4]);m(sp,c,0,2.8,0,[.65,.6,.6]);
   const cone=new THREE.ConeGeometry(.22,.5,4);m(cone,c,-.38,3.35,0);m(cone,c,.38,3.35,0);
   m(sp,0x111111,-.22,2.85,.5,[.09,.12,.06]);m(sp,0x111111,.22,2.85,.5,[.09,.12,.06]);m(sp,0xff8fa3,0,2.7,.58,[.08,.06,.06]);
@@ -110,20 +113,21 @@ function mkCat(c,c2){
   const arms=[-1,1].map(s=>{const a=new THREE.Group();a.position.set(s*.85,2.2,0);g.add(a);m(new THREE.BoxGeometry(.3,.9,.3),c,0,-.45,0,null,a);m(sp,0xe53935,0,-.95,0,[.3,.3,.3],a);return a});
   const legs=[-1,1].map(s=>{const l=new THREE.Group();l.position.set(s*.35,.9,0);g.add(l);m(new THREE.BoxGeometry(.38,.9,.38),c,0,-.45,0,null,l);return l});
   S.add(g);
-  return {g,arms,legs,tail,cm,bm,gm,x:0,z:0,y:0,vy:0,a:0,hp:100,vx:0,vz:0,mvx:0,mvz:0,cd:0,stun:0,guard:false,at:null,t:0,moving:false,ko:false,kt:0,gT:0,ai:{t:0,rt:0,gc:0}};
+  return {g,arms,legs,tail,cm,bm,gm,gl,x:0,z:0,y:0,vy:0,a:0,hp:100,vx:0,vz:0,mvx:0,mvz:0,cd:0,stun:0,guard:false,at:null,t:0,moving:false,ko:false,kt:0,gT:0,ai:{t:0,rt:0,gc:0}};
 }
 const P=mkCat(0xff9a3c,0xfff1d6),A=mkCat(0x6a5acd,0xe6e0ff);
 let st='lobby',inRing=false,cnt=0,shake=0;
 
 const T=[
-{n:'브론즈',ic:'🥉',c:'#cd7f32',spd:4.4,thk:.40,grd:.40,gcd:1.0,dmg:1.0,cdm:1.0,jk:.12},
-{n:'실버',ic:'🥈',c:'#c0c0c0',spd:4.8,thk:.34,grd:.50,gcd:.9,dmg:1.1,cdm:.95,jk:.16},
-{n:'골드',ic:'🥇',c:'#ffd700',spd:5.1,thk:.28,grd:.58,gcd:.8,dmg:1.2,cdm:.9,jk:.2},
-{n:'에메랄드',ic:'💚',c:'#2ecc71',spd:5.4,thk:.23,grd:.65,gcd:.7,dmg:1.3,cdm:.85,jk:.24},
-{n:'다이아몬드',ic:'💎',c:'#4fc3f7',spd:5.7,thk:.18,grd:.72,gcd:.6,dmg:1.4,cdm:.8,jk:.28},
-{n:'마스터',ic:'🔮',c:'#ab47bc',spd:6.0,thk:.14,grd:.8,gcd:.5,dmg:1.5,cdm:.72,jk:.32},
-{n:'그랜드 마스터',ic:'👑',c:'#ff1744',spd:6.4,thk:.1,grd:.88,gcd:.4,dmg:1.5,cdm:.65,jk:.4}];
+{n:'브론즈',ic:'🥉',c:'#cd7f32',spd:4.2,thk:.46,grd:.32,gcd:1.1,dmg:.95,cdm:1.05,jk:.10},
+{n:'실버',ic:'🥈',c:'#c0c0c0',spd:4.5,thk:.39,grd:.42,gcd:1.0,dmg:1.0,cdm:1.0,jk:.13},
+{n:'골드',ic:'🥇',c:'#ffd700',spd:4.8,thk:.33,grd:.50,gcd:.9,dmg:1.1,cdm:.95,jk:.16},
+{n:'에메랄드',ic:'💚',c:'#2ecc71',spd:5.1,thk:.28,grd:.57,gcd:.8,dmg:1.2,cdm:.9,jk:.20},
+{n:'다이아몬드',ic:'💎',c:'#4fc3f7',spd:5.4,thk:.23,grd:.64,gcd:.7,dmg:1.3,cdm:.85,jk:.23},
+{n:'마스터',ic:'🔮',c:'#ab47bc',spd:5.7,thk:.19,grd:.72,gcd:.6,dmg:1.4,cdm:.78,jk:.27},
+{n:'그랜드 마스터',ic:'👑',c:'#ff1744',spd:6.0,thk:.15,grd:.80,gcd:.5,dmg:1.4,cdm:.70,jk:.33}];
 const NEED=3;let pt=0;try{pt=Math.max(0,Math.min(NEED-1,+localStorage.getItem('catPt')||0))}catch(e){}
+let ot=0;
 let lv=0;try{lv=Math.max(0,Math.min(6,+localStorage.getItem('catLv')||0))}catch(e){}
 const saveLv=()=>{try{localStorage.setItem('catLv',lv);localStorage.setItem('catPt',pt);localStorage.setItem('catGold',gold)}catch(e){}};
 const badge=k=>'<span style="background:'+k.c+';color:#111;padding:1px 7px;border-radius:6px;font-size:14px">'+k.ic+' '+k.n+'</span>';
@@ -132,7 +136,7 @@ function recolor(f,c1,c2,gc){f.cm.forEach(m=>m.color.copy(c1));f.bm.forEach(m=>m
 const SK=[{n:'기본',ic:'🐱',p:0,c:0x9aa0a6,c2:0xf2f2f2,gl:0xe53935},{n:'치즈',ic:'🧀',p:100,c:0xffb02e,c2:0xfff3c4,gl:0xe53935},{n:'악마',ic:'😈',p:10000,c:0x7a1020,c2:0xd04a5a,gl:0x1a1a1a}];
 let sk=0;try{sk=Math.max(0,Math.min(2,+localStorage.getItem('catSk')||0))}catch(e){}
 function applySkin(f,i){
-  const k=SK[i];f.cm.forEach(m=>m.color.set(k.c));f.bm.forEach(m=>m.color.set(k.c2));f.gm.forEach(m=>m.color.set(k.gl));
+  const k=SK[i];f.cm.forEach(m=>m.color.set(k.c));f.bm.forEach(m=>m.color.set(k.c2));
   (f.acc||[]).forEach(([pa,o])=>pa.remove(o));f.acc=[];
   const add=(pa,geo,col,x,y,z,sc,r)=>{const o=new THREE.Mesh(geo,mat(col));o.position.set(x,y,z);if(sc)o.scale.set(sc[0],sc[1],sc[2]);if(r)o.rotation.set(r[0],r[1],r[2]);o.castShadow=true;pa.add(o);f.acc.push([pa,o]);return o};
   const bx=(w,h,d)=>new THREE.BoxGeometry(w,h,d),cn=(r,h)=>new THREE.ConeGeometry(r,h,6);
@@ -147,30 +151,52 @@ function applySkin(f,i){
   }
   f.skin=i;
 }
+const GL=[{n:'기본 장갑',ic:'🥊',p:0,c:0xe53935,em:0x000000},{n:'얼음 장갑',ic:'🧊',p:100,c:0x8fe3ff,em:0x1b7fa0},{n:'불타는 장갑',ic:'🔥',p:9000,c:0xff5a1f,em:0xff2d00}];
+let gv=0,gown=[1,0,0];try{gv=+localStorage.getItem('catGl')||0;gown=JSON.parse(localStorage.getItem('catGOwn')||'[1,0,0]');gown[0]=1}catch(e){}
+if(!gown[gv])gv=0;
+function applyGlove(f,i){
+  const k=GL[i];f.gm.forEach(m=>{m.color.set(k.c);m.emissive.set(k.em)});
+  (f.gacc||[]).forEach(([pa,o])=>pa.remove(o));f.gacc=[];f.fl=[];
+  const add=(pa,col,x,y,z,h,r,rz,basic)=>{const o=new THREE.Mesh(new THREE.ConeGeometry(r,h,6),basic?new THREE.MeshBasicMaterial({color:col}):mat(col));o.position.set(x,y,z);o.rotation.z=rz||0;pa.add(o);f.gacc.push([pa,o]);return o};
+  f.gl.forEach(g=>{
+    if(i===1){add(g,0xe0f7ff,0,1.1,0,1,.3,0);add(g,0xb3ecff,.85,.65,0,.9,.28,-1.1);add(g,0xb3ecff,-.85,.65,0,.9,.28,1.1)}
+    if(i===2)f.fl.push(add(g,0xffb300,0,1.15,0,1.4,.5,0,1),add(g,0xff5722,.55,.95,.2,1.1,.4,-.3,1),add(g,0xff3d00,-.55,.95,-.2,1.1,.4,.3,1));
+  });
+}
 let gold=0,own=[1,0,0];try{gold=Math.max(0,+localStorage.getItem('catGold')||0);own=JSON.parse(localStorage.getItem('catOwn')||'[1,0,0]');own[0]=1}catch(e){}
 if(!own[sk])sk=0;
-const saveOwn=()=>{try{localStorage.setItem('catOwn',JSON.stringify(own));localStorage.setItem('catGold',gold);localStorage.setItem('catSk',sk)}catch(e){}};
+const saveOwn=()=>{try{localStorage.setItem('catOwn',JSON.stringify(own));localStorage.setItem('catGOwn',JSON.stringify(gown));localStorage.setItem('catGold',gold);localStorage.setItem('catSk',sk);localStorage.setItem('catGl',gv)}catch(e){}};
+let tab='s';
 const fmt=n=>n.toLocaleString('ko-KR');
 function skinUI(){$('skins').innerHTML='<b>💰 '+fmt(gold)+'원</b><button id="shopbtn">🛒 상점</button>'}
 function renderShop(note){
-  $('sg').textContent='💰 '+fmt(gold)+'원';
-  $('sl').innerHTML=SK.map((k,i)=>{const eq=i===sk,has=own[i];
+  const isS=tab==='s',L=isS?SK:GL,O=isS?own:gown,cur=isS?sk:gv;
+  $('sg').textContent='💰 '+fmt(gold)+'원';$('st').innerHTML='🛒 상점 &gt; '+(isS?'스킨':'장갑');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  $('sl').innerHTML=L.map((k,i)=>{const eq=i===cur,has=O[i];
     const btn=eq?'<button class="eq" disabled>✔ 장착중</button>':has?'<button data-a="equip" data-i="'+i+'">장착하기</button>':'<button data-a="buy" data-i="'+i+'" class="'+(gold>=k.p?'':'no')+'">구매하기</button>';
     return '<div class="card'+(eq?' on':'')+'"><div class="ic">'+k.ic+'</div><b>'+k.n+'</b><span>'+(k.p?'💰 '+fmt(k.p)+'원':'무료')+'</span>'+btn+'</div>'}).join('')+(note?'<p id="sn">'+note+'</p>':'');
 }
 function openShop(){$('shop').style.display='flex';renderShop('')}
 $('sx').onclick=()=>{$('shop').style.display='none';skinUI();setRank()};
-$('sl').onclick=e=>{const b=e.target.closest('button[data-a]');if(!b)return;const i=+b.dataset.i,k=SK[i];
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;renderShop('')}};
+$('sl').onclick=e=>{const b=e.target.closest('button[data-a]');if(!b)return;
+  const isS=tab==='s',L=isS?SK:GL,O=isS?own:gown,i=+b.dataset.i,k=L[i];
+  const use=()=>{if(isS){sk=i;applySkin(P,sk)}else{gv=i;applyGlove(P,gv)}};
   if(b.dataset.a==='buy'){
     if(gold<k.p){snd(150,.2,'sawtooth',.1);renderShop('돈이 부족해요! '+fmt(k.p-gold)+'원이 더 필요해요');return}
-    gold-=k.p;own[i]=1;sk=i;applySkin(P,sk);saveOwn();snd(800,.2,'triangle',.12);renderShop('구매 완료! 바로 장착했어요 🎉')}
-  else{sk=i;applySkin(P,sk);saveOwn();snd(600,.12,'triangle',.1);renderShop('')}};
+    gold-=k.p;O[i]=1;use();saveOwn();snd(800,.2,'triangle',.12);renderShop('구매 완료! 바로 장착했어요 🎉')}
+  else{use();saveOwn();snd(600,.12,'triangle',.1);renderShop('')}};
 $('skins').onclick=e=>{if(e.target.closest('#shopbtn')){snd(500,.1,'triangle',.1);openShop()}};
+// 전체화면
+function toggleFS(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}}
+$('fs').onclick=()=>{$('fs').blur();toggleFS()};
+addEventListener('fullscreenchange',()=>{$('fs').textContent=document.fullscreenElement?'🗗 전체화면 해제':'⛶ 전체화면'});
 const AT={punch:{cd:.45,dur:.35,hit:.14,rng:2.7,dmg:7,kb:8,dy:1.4},kick:{cd:.75,dur:.5,hit:.2,rng:3.1,dmg:11,kb:14,dy:2.4},jkick:{cd:.9,dur:.6,hit:.15,rng:3.4,dmg:15,kb:18,dy:2.8}};
 function act(a,type,side){
   if(st!=='fight'||a.cd>0||a.stun>0||a.ko||a.guard||a.at)return;
   if(type==='kick'&&a.y>.3)type='jkick';
-  const t=AT[type];a.cd=t.cd*(a===A?T[lv].cdm:1);a.at={type,side:side||0,t:0,done:false};
+  const t=AT[type];a.cd=t.cd*(a===A?T[ot].cdm:1);a.at={type,side:side||0,t:0,done:false};
   if(type==='jkick'){a.vx+=Math.sin(a.a)*9;a.vz+=Math.cos(a.a)*9}
   snd(type==='punch'?420:260,.12,'square',.07,-150);
 }
@@ -183,7 +209,7 @@ function hurt(d,a,dmg,kb,slam){
   d.hp=Math.max(0,d.hp-dmg);
   if(d.hp<=0&&!d.ko){d.ko=true;st='over';snd(400,.7,'sawtooth',.18,-330);shake=.8;
     const win=d===A;msg(win?'KO!':'KO...',0);
-    const rw=win?100*(lv+1):0;gold+=rw;
+    const rw=win?100*(ot+1):0;gold+=rw;
     let sub='';
     if(win){if(lv<6){pt++;if(pt>=NEED){pt=0;lv++;sub='🎉 승급! '+T[lv].ic+' '+T[lv].n+' 랭크가 됐어요'}else sub='승점 +1 ('+pt+'/'+NEED+') · 승급까지 '+(NEED-pt)+'승 남았어요'}else sub='👑 최고 랭크 그랜드 마스터 방어 성공!'}
     else{if(pt>0)pt--;sub=lv<6?'승점 -1 ('+pt+'/'+NEED+') · 다시 도전해 보세요!':'다시 도전해 보세요!'}
@@ -195,7 +221,7 @@ function stepAtk(f,o,dt){
   if(!f.at)return;const a=f.at,t=AT[a.type];a.t+=dt;
   if(!a.done&&a.t>=t.hit){a.done=true;
     const dx=o.x-f.x,dz=o.z-f.z,dist=Math.hypot(dx,dz)||1;
-    if(dist<t.rng&&Math.abs(o.y-f.y)<t.dy&&(dx*Math.sin(f.a)+dz*Math.cos(f.a))/dist>.2)hurt(o,f,t.dmg*(f===A?T[lv].dmg:1),t.kb,a.type!=='punch');}
+    if(dist<t.rng&&Math.abs(o.y-f.y)<t.dy&&(dx*Math.sin(f.a)+dz*Math.cos(f.a))/dist>.2)hurt(o,f,t.dmg*(f===A?T[ot].dmg:1),t.kb,a.type!=='punch');}
   if(a.t>=t.dur)f.at=null;
 }
 function step(f,dt,lim,ox){
@@ -208,7 +234,7 @@ function step(f,dt,lim,ox){
 }
 function anim(f,dt){
   const sw=f.moving?Math.sin(f.t*12)*.6:0;f.legs[0].rotation.x=sw;f.legs[1].rotation.x=-sw;
-  f.tail.rotation.y=Math.sin(f.t*5)*.5;
+  f.tail.rotation.y=Math.sin(f.t*5)*.5;(f.fl||[]).forEach((o,i)=>o.scale.set(1,1+.5*Math.sin(f.t*16+i*2),1));
   let l=Math.sin(f.t*3)*.1,r=-l;
   let kk=0;
   if(f.at){const t=AT[f.at.type],p=Math.min(1,f.at.t/t.dur),sn=Math.sin(p*Math.PI);
@@ -224,7 +250,7 @@ function place(f){f.g.position.set(f.x,(inRing?1:0)+f.y+f.kt*.7,f.z);f.g.rotatio
 
 // ---------- AI ----------
 function aiThink(dt){
-  const a=A,d=P,k=T[lv];a.mvx=a.mvz=0;if(a.ko||st!=='fight')return;
+  const a=A,d=P,k=T[ot];a.mvx=a.mvz=0;if(a.ko||st!=='fight')return;
   const dx=d.x-a.x,dz=d.z-a.z,dist=Math.hypot(dx,dz)||1;a.a=Math.atan2(dx,dz);
   a.gT-=dt;a.ai.gc-=dt;a.guard=a.gT>0&&!a.at;a.ai.t-=dt;a.ai.rt-=dt;
   if(a.stun>0||a.at)return;
@@ -232,7 +258,7 @@ function aiThink(dt){
   if(d.at&&!d.at.done&&dist<3.8&&a.ai.gc<=0&&Math.random()<k.grd*14*dt){a.gT=.5;a.ai.gc=k.gcd+.5;return}
   if(a.guard)return;
   if(a.ai.rt>0){a.mvx=-dx/dist*k.spd*.8;a.mvz=-dz/dist*k.spd*.8;return}
-  const open=d.stun>.1&&lv>=2,near=dist<3.2;
+  const open=d.stun>.1&&ot>=2,near=dist<3.2;
   if((a.ai.t<=0||open)&&a.cd<=0&&dist<4.6){
     const r=Math.random();
     if(dist>2.2&&r<k.jk*(near?1:1.5)){a.ai.t=k.thk*(.5+Math.random());jump(a);act(a,'jkick');return}
@@ -252,7 +278,7 @@ function flash(){const f=$('flash');f.style.transition='none';f.style.opacity=1;
 function reset(f){Object.assign(f,{y:0,vy:0,hp:100,vx:0,vz:0,mvx:0,mvz:0,cd:0,stun:0,guard:false,at:null,ko:false,kt:0,gT:0});f.ai.gc=f.ai.t=f.ai.rt=0;f.g.rotation.set(0,0,0)}
 function startMatch(){
   inRing=true;st='count';$('skins').style.display='none';cnt=3.99;lastCnt=0;$('msg').style.opacity=0;reset(P);reset(A);
-  {const k=T[lv];let h;do{h=Math.random()}while(Math.min(Math.abs(h-.08),1-Math.abs(h-.08))<.08);
+  {const lo=Math.max(0,lv-2),hi=Math.min(6,lv+2);ot=lo+Math.floor(Math.random()*(hi-lo+1));const k=T[ot];let h;do{h=Math.random()}while(Math.min(Math.abs(h-.08),1-Math.abs(h-.08))<.08);
    recolor(A,new THREE.Color().setHSL(h,.65,.5),new THREE.Color().setHSL(h,.5,.88),k.c);$('rt').innerHTML=badge(k)}
   P.x=X0-5;P.z=0;A.x=X0+5;A.z=0;P.a=Math.PI/2;A.a=-Math.PI/2;A.g.visible=true;
   flash();[400,600,900].forEach((f,i)=>setTimeout(()=>snd(f,.2,'triangle',.12),i*90));
@@ -271,6 +297,7 @@ const keys={};
 addEventListener('keydown',e=>{keys[e.code]=1;initA();
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   if(e.code==='Escape'&&$('shop').style.display==='flex')$('sx').click();
+  if(e.code==='KeyF'&&!e.repeat)toggleFS();
   if((e.code==='KeyR'||e.code==='Enter')&&st==='over'&&$('over').style.display==='flex'){startMatch();return}
   if(e.repeat)return;
   if(e.code==='Space'){jump(P);if(keys.KeyE&&st==='fight')act(P,'jkick')}
@@ -318,5 +345,5 @@ function update(dt){
   const fx=inRing?X0:P.x,fz=inRing?0:P.z;sun.position.set(fx+15,30,fz+10);sun.target.position.set(fx,0,fz);
 }
 function loop(now){requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;update(dt);R.render(S,cam)}
-applySkin(P,sk);toLobby();camP.set(0,9,19);look.set(0,2,6);requestAnimationFrame(loop);
+applySkin(P,sk);applyGlove(P,gv);toLobby();camP.set(0,9,19);look.set(0,2,6);requestAnimationFrame(loop);
 </script></body></html>
