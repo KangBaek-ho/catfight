@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>고양이 레슬링 3D</title>
+<title>고양이 게임</title>
 <style>
 :root{--panel:rgba(255,255,255,.88);--ink:#1b1b24;--hp:#e8453c;--bd:#1b1b24;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--panel:rgba(20,22,30,.88);--ink:#f2f2f7;--bd:#f2f2f7}}
@@ -87,9 +87,14 @@ function snd(f,d,t,v,s){if(!AC||muted)return;const o=AC.createOscillator(),g=AC.
 const mat=c=>new THREE.MeshLambertMaterial({color:c});
 function box(w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;S.add(m);return m}
 function label(t,x,y,z,sc){const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,512,128);g.fillStyle='#fff';g.font='bold 50px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(t,256,64);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.position.set(x,y,z);s.scale.set(sc*4,sc,1);S.add(s)}
+// ❄ 눈: 쌓인 눈 덩어리/지붕 눈
+const snowM=new THREE.MeshLambertMaterial({color:0xffffff}),mndG=new THREE.SphereGeometry(1,10,6);
+function snowCap(w,d,x,y,z,h){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h||.22,d),snowM);m.position.set(x,y,z);m.receiveShadow=true;S.add(m);return m}
+function mound(x,z,r,y0,hh){const m=new THREE.Mesh(mndG,snowM);m.scale.set(r,hh||r*.45,r);m.position.set(x,y0||0,z);m.receiveShadow=true;S.add(m)}
+const rnd=(a,b)=>a+Math.random()*(b-a);
 // 초록 들판 대신 하늘에 떠 있는 섬: 로비/링 바닥 아래를 뾰족하게 + 구름
 function island(x,c){const o=new THREE.Mesh(new THREE.ConeGeometry(35.4,18,4),mat(c));o.rotation.set(Math.PI,Math.PI/4,0);o.position.set(x,-10,0);S.add(o)}
-island(0,0x8d6e63);island(100,0x4a4f5e);
+island(0,0x8d6e63);island(100,0x6b7080);
 const cloudM=new THREE.MeshLambertMaterial({color:0xffffff,transparent:true,opacity:.93}),cloudG=new THREE.SphereGeometry(1,12,8),clouds=[];
 function mkCloud(x,y,z,k){const g=new THREE.Group();
   [[0,0,0,1.2],[1.3,-.2,.3,.9],[-1.3,-.3,-.2,.95],[.4,.5,-.4,.8],[-.5,.3,.5,.7]].forEach(([a,b,c,r])=>{const o=new THREE.Mesh(cloudG,cloudM);o.position.set(a*k,b*k,c*k);o.scale.set(r*k*1.5,r*k*.65,r*k);g.add(o)});
@@ -100,7 +105,7 @@ for(let i=0;i<34;i++){
   if(!low&&(Math.hypot(x,z)<55||Math.hypot(x-100,z)<55||Math.hypot(x+120,z)<75)){i--;continue}  // 섬 위/주변 겹침 방지
   mkCloud(x,y,z,k)}
 // 로비
-box(50,1,50,0xd9c7a3,0,-.5,0);
+box(50,1,50,0xeaf2f9,0,-.5,0);
 // 로비 왼쪽 벽 + 나의 기록 3D 게시판
 box(.6,9,48,0xe9e2d0,-24.7,4.5,0);
 const recC=document.createElement('canvas');recC.width=1600;recC.height=512;
@@ -122,7 +127,7 @@ function recUI(){
       g.fillStyle='#fff';g.font='bold 44px system-ui,sans-serif';g.textAlign='left';g.fillText(lb,x0+150,y);
       g.fillStyle='#ffd54f';g.font='900 56px system-ui,sans-serif';g.textAlign='right';g.fillText(val,x0+715,y)})});
   recTex.needsUpdate=true}
-const grid=new THREE.GridHelper(50,25,0xb89a6a,0xb89a6a);grid.position.y=.02;S.add(grid);
+const grid=new THREE.GridHelper(50,25,0xb4cde4,0xb4cde4);grid.position.y=.02;S.add(grid);
 box(8,.1,6,0xc0392b,0,.05,6);
 label('🐾 고양이 로비',0,11,-24,2);
 // 로비 맨 뒤쪽 벽 + 피구 간판 (피구 패드는 이 벽 앞에 있어요)
@@ -147,9 +152,38 @@ const DPADS=[[-5,1],[1,3],[7,5],[13,7]].map(([x,n])=>{
   const rg=new THREE.Mesh(new THREE.TorusGeometry(2.8,.12,8,40),new THREE.MeshBasicMaterial({color:0xc8e6c9}));rg.rotation.x=Math.PI/2;rg.position.set(x,.3,DPADZ);S.add(rg);
   label('🏐 피구 '+n+':'+n,x,4.5,DPADZ,1.1);
   return {x,n,pd,rg}});
+// ❄ 로비: 벽 위 눈 + 가장자리에 쌓인 눈
+snowCap(.95,48.4,-24.7,9.11,0);snowCap(49.2,.95,0,9.11,-24.7);
+for(let i=0;i<60;i++){let x,z,k=0;
+  do{const side=Math.random();
+    if(side<.34){x=rnd(22.7,25);z=rnd(-24,25)}else if(side<.62){x=rnd(-25,25);z=rnd(22.7,25)}else if(side<.8){x=rnd(-25,-22.7);z=rnd(-24,25)}else{x=rnd(-25,25);z=rnd(-25,-22.5)}k++}
+  while(k<20&&(PADS.some(q=>Math.hypot(x-q.x,z-PADZ)<3.4)||DPADS.some(q=>Math.hypot(x-q.x,z-DPADZ)<3.6)));
+  mound(x,z,rnd(.9,2.1),0)}
+PADS.forEach(q=>{for(let j=0;j<3;j++){const a=rnd(0,6.28);mound(q.x+Math.cos(a)*3.3,PADZ+Math.sin(a)*3.3,rnd(.35,.6),0)}});
+// 🎄 크리스마스 트리 (뒤쪽 오른쪽 구석)
+const TREEX=19.5,TREEZ=-19.5,treeLights=[];let treeStar;
+(function(){
+  const g=new THREE.Group();g.position.set(TREEX,0,TREEZ);g.scale.setScalar(.9);
+  const add=(geo,c,x,y,z,basic)=>{const o=new THREE.Mesh(geo,basic?new THREE.MeshBasicMaterial({color:c}):mat(c));o.position.set(x,y,z);o.castShadow=true;g.add(o);return o};
+  add(new THREE.CylinderGeometry(.5,.65,1.8,10),0x6d4c41,0,.9,0);
+  [[3.0,3.0,1.6],[2.4,2.8,3.4],[1.8,2.6,5.2],[1.2,2.4,6.9]].forEach(([r,h,base],ti)=>{
+    add(new THREE.ConeGeometry(r,h,18),0x1b8a3a,0,base+h/2,0);
+    const ch=h*.5;add(new THREE.ConeGeometry(r*.53,ch,18),0xffffff,0,base+h-ch/2+.03,0); // 가지 위에 쌓인 눈
+    for(let j=0;j<5;j++){const a=j*1.2566+ti*.7,rr=r*.75+.1;
+      add(new THREE.SphereGeometry(.2,8,6),[0xff1744,0xffd600,0x2979ff,0xff80ab,0xffffff][(j+ti)%5],Math.cos(a)*rr,base+h*.25,Math.sin(a)*rr)}});
+  treeStar=add(new THREE.OctahedronGeometry(.45),0xffee58,0,9.75,0,true);
+  for(let i=0;i<20;i++){const q=i/19,y=2+q*7,rr=Math.max(.15,3.0*(1-(y-1.6)/8.2))+.15,a=q*6.283*3.5;
+    treeLights.push(add(new THREE.SphereGeometry(.13,6,5),0xffffff,Math.cos(a)*rr,y,Math.sin(a)*rr,true))}
+  [[0xd32f2f,1.2,0],[0x1976d2,1,1.3],[0x388e3c,1.1,2.6],[0xfbc02c,.9,3.9],[0x8e24aa,1,5.2]].forEach(([c,sz,a])=>{
+    const gx=Math.cos(a+3.6)*3.3,gz=Math.sin(a+3.6)*3.3;
+    add(new THREE.BoxGeometry(sz,sz*.8,sz),c,gx,sz*.4,gz);add(new THREE.BoxGeometry(sz*1.02,sz*.82,.16),0xffffff,gx,sz*.4,gz);add(new THREE.BoxGeometry(sz*1.04,.12,sz*1.04),0xffffff,gx,sz*.8+.05,gz)});
+  const base=new THREE.Mesh(mndG,snowM);base.scale.set(3.8,.5,3.8);g.add(base);
+  S.add(g)})();
+function xmasTick(){const t=performance.now()/1000;treeLights.forEach((m,i)=>m.material.color.setHSL((i*.11+t*.12)%1,1,.5+.2*Math.sin(t*3+i*1.7)));if(treeStar)treeStar.rotation.y=t}
+
 // 레슬링 링 (바닥 회색 / 끈 빨강 / 기둥 검정)
 const X0=100;
-box(50,1,50,0x2b2f3a,X0,-.5,0);
+box(50,1,50,0xeaf2f9,X0,-.5,0);
 box(20,1,20,0x8c8c8c,X0,.5,0);
 [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>box(.7,4.4,.7,0x111111,X0+a*10,3.2,b*10));
 const rm=mat(0xd32f2f);
@@ -157,11 +191,15 @@ const rm=mat(0xd32f2f);
   let r=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,20,8),rm);r.rotation.z=Math.PI/2;r.position.set(X0,h,s);S.add(r);
   r=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,20,8),rm);r.rotation.x=Math.PI/2;r.position.set(X0+s,h,0);S.add(r)}));
 const rl=new THREE.PointLight(0xffffff,.7,70);rl.position.set(X0,14,0);S.add(rl);
+// ❄ 링: 바닥/기둥 위 눈 + 주변에 쌓인 눈
+snowCap(19.4,19.4,X0,1.05,0,.1);
+[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>{snowCap(1,1,X0+a*10,5.5,b*10,.2);mound(X0+a*10.8,b*10.8,1.3,.9,.7)});
+for(let i=0;i<50;i++){let x,z;do{x=rnd(-24.5,24.5);z=rnd(-24.5,24.5)}while(Math.abs(x)<11.8&&Math.abs(z)<11.8);mound(X0+x,z,rnd(.9,2.2),0)}
 
 // 고양이 피구장 (넓은 코트, 링 아님): 중앙선 기준 왼쪽=우리 팀(파랑) / 오른쪽=상대 팀(빨강)
 const DX=-120;
 (function(){const geo=new THREE.ConeGeometry(30,18,4);geo.rotateY(Math.PI/4);const o=new THREE.Mesh(geo,mat(0x78909c));o.scale.set(72/42.43,1,44/42.43);o.rotation.x=Math.PI;o.position.set(DX,-10,0);S.add(o)})();
-box(72,1,44,0xcfd8dc,DX,-.5,0);
+box(72,1,44,0xeef4fa,DX,-.5,0);
 box(60,.06,32,0xe0b87a,DX,-.01,0);
 [-1,1].forEach(sd=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(30,32),new THREE.MeshBasicMaterial({color:sd<0?0x2979ff:0xff1744,transparent:true,opacity:.22}));m.rotation.x=-Math.PI/2;m.position.set(DX+sd*15,.05,0);S.add(m)});
 box(.5,.04,32.4,0xffffff,DX,.04,0);box(.5,.04,32.4,0xffffff,DX-30.2,.04,0);box(.5,.04,32.4,0xffffff,DX+30.2,.04,0);
@@ -170,6 +208,16 @@ box(60.9,.04,.5,0xffffff,DX,.04,-16.2);box(60.9,.04,.5,0xffffff,DX,.04,16.2);
 box(62,1.2,.5,0x90a4ae,DX,.6,-17);box(62,1.2,.5,0x90a4ae,DX,.6,17);box(.5,1.2,34,0x90a4ae,DX-31,.6,0);box(.5,1.2,34,0x90a4ae,DX+31,.6,0);
 const dl=new THREE.PointLight(0xffffff,.6,100);dl.position.set(DX,18,0);S.add(dl);
 label('🏐 고양이 피구장',DX,9,-19,1.8);
+// ❄ 피구장: 코트 위에 쌓인 눈 + 난간 위/바깥 눈 (중앙선 주변은 비워서 팀 구분이 보이게)
+(function(){
+  const csn=new THREE.Mesh(new THREE.PlaneGeometry(60,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));csn.rotation.x=-Math.PI/2;csn.position.set(DX,.045,0);S.add(csn);
+  const pm=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.85,depthWrite:false}),cg=new THREE.CircleGeometry(1,12);
+  for(let i=0;i<70;i++){const m=new THREE.Mesh(cg,pm),sd=Math.random()<.5?-1:1;m.rotation.x=-Math.PI/2;m.position.set(DX+sd*rnd(2.5,29),.075,rnd(-15.5,15.5));m.scale.set(rnd(.5,1.7),rnd(.4,1.3),1);S.add(m)}
+  snowCap(62,.7,DX,1.31,-17);snowCap(62,.7,DX,1.31,17);snowCap(.7,34,DX-31,1.31,0);snowCap(.7,34,DX+31,1.31,0);
+  for(let i=0;i<70;i++){let x,z;const sd=Math.random();
+    if(sd<.6){x=rnd(-34,34);z=(Math.random()<.5?-1:1)*rnd(17.9,21.5)}else{x=(Math.random()<.5?-1:1)*rnd(31.9,35);z=rnd(-20,20)}
+    mound(DX+x,z,rnd(.9,2.2),0)}
+})();
 
 // ---------- 고양이 ----------
 const sp=new THREE.SphereGeometry(1,16,12);
@@ -434,7 +482,7 @@ function drawTag(f){const k=T[f.tier],g=f.tag.c.getContext('2d');f.tag.s.positio
   if(f.streak>0)drawFlame(g,128,38,f.streak);
   f.tag.t.needsUpdate=true}
 N.forEach(mkTag);mkTag(P);
-const nearPad=(x,z)=>PADS.some(q=>Math.hypot(x-q.x,z-PADZ)<4)||DPADS.some(q=>Math.hypot(x-q.x,z-DPADZ)<4);
+const nearPad=(x,z)=>PADS.some(q=>Math.hypot(x-q.x,z-PADZ)<4)||DPADS.some(q=>Math.hypot(x-q.x,z-DPADZ)<4)||Math.hypot(x-TREEX,z-TREEZ)<5.5;
 function npcTarget(w){let x,z,k=0;do{x=(Math.random()*2-1)*20;z=(Math.random()*2-1)*20;k++}while(k<30&&nearPad(x,z));w.tx=x;w.tz=z;w.spd=2+Math.random()*2.2}
 function dressNPC(f){dressAI(f,0xe53935,-1);f.tier=pickTier();f.streak=Math.floor(Math.pow(Math.random(),1.6)*(4+f.tier*3));drawTag(f)}
 function spawnNPCs(){
@@ -457,6 +505,7 @@ function npcThink(f,dt){
 }
 function sepLobby(){ // 로비 고양이끼리 겹치지 않게 살짝 밀어내기
   const L=[P,...N.filter(f=>f.g.visible)];
+  L.forEach(f=>{const dx=f.x-TREEX,dz=f.z-TREEZ,dd=Math.hypot(dx,dz);if(dd<3.8&&dd>0){f.x=TREEX+dx/dd*3.8;f.z=TREEZ+dz/dd*3.8}}); // 트리 안으로 못 들어가게
   for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const a=L[i],b=L[j],dx=b.x-a.x,dz=b.z-a.z,dd=Math.hypot(dx,dz);
     if(dd<1.4&&dd>0){const k=(1.4-dd)/2/dd;a.x-=dx*k;a.z-=dz*k;b.x+=dx*k;b.z+=dz*k}}
 }
@@ -477,7 +526,7 @@ function hudUpdate(){
 
 // ---------- 로비 TV: 다른 AI끼리 싸우는 중계 4채널 ----------
 const TVX=-17,TVZ=-21.5,TVY=4.3;
-box(9.8,5.8,.7,0x15151c,TVX,TVY,TVZ);box(.9,2.2,.7,0x15151c,TVX-3.2,1,TVZ);box(.9,2.2,.7,0x15151c,TVX+3.2,1,TVZ);
+box(9.8,5.8,.7,0x15151c,TVX,TVY,TVZ);snowCap(10,1.1,TVX,TVY+2.9+.11,TVZ);box(.9,2.2,.7,0x15151c,TVX-3.2,1,TVZ);box(.9,2.2,.7,0x15151c,TVX+3.2,1,TVZ);
 const tvC=document.createElement('canvas');tvC.width=512;tvC.height=288;
 const tvG=tvC.getContext('2d'),tvTex=new THREE.CanvasTexture(tvC);
 const tvScr=new THREE.Mesh(new THREE.PlaneGeometry(9,5.06),new THREE.MeshBasicMaterial({map:tvTex}));tvScr.position.set(TVX,TVY,TVZ+.37);S.add(tvScr);
@@ -618,7 +667,7 @@ const BALLS=Array.from({length:4},()=>{const g=new THREE.Group();
 const aimMk=new THREE.Mesh(new THREE.TorusGeometry(.9,.1,8,24),new THREE.MeshBasicMaterial({color:0xffd600}));aimMk.rotation.x=Math.PI/2;aimMk.visible=false;S.add(aimMk);
 const aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-1.4),rc=new THREE.Raycaster(),ndc=new THREE.Vector2(),aimPt=new THREE.Vector3(DX-8,1.4,0);
 const dB=t=>t?{x0:DX+1.3,x1:DX+29.5}:{x0:DX-29.5,x1:DX-1.3};
-let dn=1,dStall=0,dYaw=0,dPit=.843,dZ=1; // 피구 카메라(회전/기울기/확대)
+let dn=1,dStall=0,dYaw=0,dPit=.843,dZ=1,outQ=[]; // outQ: 아웃된 순서(먼저 아웃된 팀원부터 부활) // 피구 카메라(회전/기울기/확대)
 function hideGloves(f,h){f.gl.forEach(o=>o.visible=!h)}
 function startDodge(nn){
   mode='dodge';dn=nn;dYaw=0;dPit=.843;dZ=1;
@@ -634,12 +683,12 @@ function startDodge(nn){
   [mem0,fo].forEach((mem,tm)=>mem.forEach((f,i)=>{const n=mem.length;
     f.team=tm;f.x=DX+(tm?1:-1)*(6+(i%2)*5);f.z=n===1?0:-12+24*i/(n-1);f.a=tm?-Math.PI/2:Math.PI/2;
     f.mkR.material.color.set(tm?0xff1744:0x2979ff);f.mkA.material.color.set(f===P?0xffd600:tm?0xff1744:0x2979ff)}));
-  dStall=0;serveBalls(nn);
+  dStall=0;outQ=[];serveBalls(nn);
   Object.assign(sun.shadow.camera,{left:-42,right:42,top:34,bottom:-34,far:110});sun.shadow.camera.updateProjectionMatrix();
   $('l1').textContent='🐱 우리 팀 생존';$('l2').textContent='상대 팀 생존';$('rt').innerHTML='';
   flash();[400,600,900].forEach((f,i)=>setTimeout(()=>snd(f,.2,'triangle',.12),i*90));
   $('hud').style.display='flex';$('over').style.display='none';
-  $('help').innerHTML='🏐 <b>피구 '+nn+':'+nn+'</b> · <b>WASD</b> 이동 · <b>Space</b> 점프(공 피하기) · <b>마우스</b> 조준 · <b>좌클릭</b> 던지기 · <b>E</b> 잡기(날아오는 공을 잡으면 던진 상대가 아웃!) · <b>드래그</b> 화면 돌리기 · <b>휠</b> 확대/축소 · 공에 맞으면 아웃 · 바닥 공은 걸어가서 줍기';
+  $('help').innerHTML='🏐 <b>피구 '+nn+':'+nn+'</b> · <b>WASD</b> 이동 · <b>Space</b> 점프(공 피하기) · <b>마우스</b> 조준 · <b>좌클릭</b> 던지기 · <b>E</b> 잡기(날아오는 공을 잡으면 아웃된 우리 팀원 1명 부활!) · <b>드래그</b> 화면 돌리기 · <b>휠</b> 확대/축소 · 공에 맞으면 아웃 · 바닥 공은 걸어가서 줍기';
 }
 function serveBalls(nn){const nb=2;
   BALLS.forEach((b,i)=>{b.m.visible=b.sh.visible=i<nb;if(i>=nb)return;Object.assign(b,{x:DX,z:(i-(nb-1)/2)*8,y:BR,vx:0,vy:0,vz:0,st:'loose',h:null,live:false,team:-1,th:null})})}
@@ -660,8 +709,16 @@ function dThrow(f,tx,tz){
   f.a=Math.atan2(ux,uz);b.x=f.x+ux*.95;b.z=f.z+uz*.95;b.y=y0;b.vx=ux*v;b.vz=uz*v;b.vy=(1.5-y0+.5*G*t*t)/t;
   b.st='fly';b.live=true;b.team=f.team;b.th=f;b.h=null;f.ball=null;f.thr=.3;f.thrCd=.4;f.noPick=.6;snd(300,.15,'sawtooth',.1,200)}
 function dDrop(c){if(!c.ball)return;const b=c.ball;c.ball=null;b.st='loose';b.h=null;b.live=false;b.vx=b.vz=0;b.vy=3}
+function dRevive(team){ // 아웃됐던 팀원 1명 부활 (먼저 아웃된 순서)
+  const i=outQ.findIndex(f=>f.team===team&&f.out);if(i<0)return null;
+  const f=outQ.splice(i,1)[0];
+  reset(f);Object.assign(f,{out:false,ball:null,catchT:0,catchCd:0,thr:0,thrCd:0,noPick:.6,outT:0,dodge:null,reactB:null,wp:null,wpt:0,bt:0,hold:0,tgt:null,rev:.5});
+  f.g.visible=true;f.mk.visible=true;f.cr.visible=false;f.g.scale.setScalar(.2);
+  f.x=DX+(team?1:-1)*rnd(23,28);f.z=rnd(-12,12);f.a=team?-Math.PI/2:Math.PI/2;
+  [660,880,1175].forEach((fq,k)=>setTimeout(()=>snd(fq,.15,'triangle',.1),k*80));
+  return f}
 function dOut(c){
-  if(c.out)return;c.out=true;c.ko=true;c.outT=1.4;c.catchT=0;dDrop(c);snd(180,.4,'sawtooth',.15,-120);
+  if(c.out)return;c.out=true;c.ko=true;c.outT=1.4;c.catchT=0;dDrop(c);outQ.push(c);snd(180,.4,'sawtooth',.15,-120);
   if(c===P)msg('💥 아웃! 팀을 응원해요',1600);
   dEnd();
 }
@@ -693,9 +750,9 @@ function ballStep(b,dt){
         if(c.out||c.team===b.team)continue;
         const dx=c.x-b.x,dz=c.z-b.z,dd=Math.hypot(dx,dz);
         if(c.catchT>0&&!c.ball&&dd<2.4&&b.y<c.y+3.8&&b.y>c.y-.3){ // 잡기 성공: 던진 상대가 아웃
-          const th=b.th;b.st='held';b.h=c;c.ball=b;b.live=false;b.th=null;b.team=c.team;c.catchT=0;snd(700,.2,'triangle',.15);
-          if(c===P)msg('✋ 캐치! 던진 상대가 아웃!',1400);else if(th===P)msg('😵 공을 잡혔어요... 아웃!',1400);
-          if(th&&!th.out)dOut(th);
+          b.st='held';b.h=c;c.ball=b;b.live=false;b.th=null;b.team=c.team;c.catchT=0;snd(700,.2,'triangle',.15);
+          const rv=dRevive(c.team); // 던진 사람은 그대로, 아웃됐던 우리 팀 한 명이 부활
+          if(c===P)msg(rv?'✋ 캐치! 아웃된 팀원이 부활해요!':'✋ 캐치!',1500);else if(rv===P)msg('✨ 팀원이 공을 잡아서 부활했어요!',1500);
           return}
         if(dd<1.1&&b.y+BR>c.y+.2&&b.y-BR<c.y+3.4){ // 맞음: 아웃
           b.live=false;b.st='loose';b.vx*=-.35;b.vz*=-.35;b.vy=Math.abs(b.vy)*.3+2;dOut(c);return}
@@ -780,6 +837,7 @@ function dodgeFrame(dt){
   if(st==='fight'){const idle=BALLS.every(b=>!b.m.visible||(b.st==='loose'&&Math.hypot(b.vx,b.vz)<.8&&b.y<.7));dStall=idle?dStall+dt:0;
     if(dStall>7){dStall=0;serveBalls(dn);msg('🏐 공을 중앙선에 다시 놓았어요!',1400)}}
   F.forEach(f=>{if(f.out&&f.outT>0){f.outT-=dt;if(f.outT<=0){f.g.visible=false;f.mk.visible=false}}});
+  F.forEach(f=>{if(f.rev>0){f.rev-=dt;f.g.scale.setScalar(clamp(1-f.rev/.5,.2,1))}else if(f.g.scale.x!==1)f.g.scale.setScalar(1)});
   F.forEach(f=>{if(f.g.visible){place(f);anim(f,dt);f.cr.visible=f.catchT>0&&!f.out}});
   BALLS.forEach(b=>{if(!b.m.visible)return;b.m.position.set(b.x,b.y,b.z);b.m.rotation.x+=Math.hypot(b.vx,b.vz)*dt*.6;b.sh.position.set(b.x,.1,b.z);const s=clamp(1.1-b.y/10,.35,1);b.sh.scale.set(s,s,s)});
   aimMk.visible=!!P.ball&&st==='fight'&&!P.out;aimMk.position.set(aimPt.x,.2,aimPt.z);
@@ -863,7 +921,7 @@ function update(dt){
   if(st==='lobby'){N.forEach(f=>{if(!f.g.visible)return;
     f.w.life-=dt;if(f.w.life<=0)respawnNPC(f);
     if(f.pop>0){f.pop-=dt;f.g.scale.setScalar(clamp(1-f.pop/.5,.15,1))}else if(f.g.scale.x!==1)f.g.scale.setScalar(1);
-    npcThink(f,dt);step(f,dt,22,0)});sepLobby();tvTick(dt)}
+    npcThink(f,dt);step(f,dt,22,0)});sepLobby();tvTick(dt);xmasTick()}
   [P,...ALLIES,...FOES,...N].forEach(f=>{if(f.g.visible){place(f);anim(f,dt)}});updBars();
   hudUpdate();
   // 카메라
