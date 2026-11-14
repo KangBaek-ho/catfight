@@ -97,32 +97,41 @@ function mkCloud(x,y,z,k){const g=new THREE.Group();
 for(let i=0;i<34;i++){
   const x=-170+Math.random()*440,z=-130+Math.random()*260,low=Math.random()<.6,k=4+Math.random()*6;
   const y=low?-14-Math.random()*26:2+Math.random()*30;
-  if(!low&&(Math.hypot(x,z)<55||Math.hypot(x-100,z)<55)){i--;continue}  // 섬 위/주변 겹침 방지
+  if(!low&&(Math.hypot(x,z)<55||Math.hypot(x-100,z)<55||Math.hypot(x+120,z)<75)){i--;continue}  // 섬 위/주변 겹침 방지
   mkCloud(x,y,z,k)}
 // 로비
 box(50,1,50,0xd9c7a3,0,-.5,0);
 // 로비 왼쪽 벽 + 나의 기록 3D 게시판
 box(.6,9,48,0xe9e2d0,-24.7,4.5,0);
-const recC=document.createElement('canvas');recC.width=1024;recC.height=512;
+const recC=document.createElement('canvas');recC.width=1600;recC.height=512;
 const recG=recC.getContext('2d'),recTex=new THREE.CanvasTexture(recC);
-const recBoard=new THREE.Mesh(new THREE.PlaneGeometry(14,7),new THREE.MeshBasicMaterial({map:recTex}));
+const recBoard=new THREE.Mesh(new THREE.PlaneGeometry(20,6.4),new THREE.MeshBasicMaterial({map:recTex}));
 recBoard.rotation.y=Math.PI/2;recBoard.position.set(-24.38,4.6,-6);S.add(recBoard);
 function recUI(){
-  const g=recG,W=1024,H=512;
+  const g=recG,W=1600,H=512;
   const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1a2a6c');gr.addColorStop(1,'#0d1536');g.fillStyle=gr;g.fillRect(0,0,W,H);
   g.strokeStyle='#ffb300';g.lineWidth=10;g.strokeRect(12,12,W-24,H-24);
-  g.fillStyle='#ffe082';g.font='900 62px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('📊 나의 기록',W/2,72);
-  g.strokeStyle='rgba(255,255,255,.25)';g.lineWidth=3;g.beginPath();g.moveTo(80,122);g.lineTo(W-80,122);g.stroke();
-  [['🏆','승리한 수',wins+'승'],[null,'현재 연승',streak+'연승'],['👑','최대 연승',best+'연승']].forEach(([ic,lb,val],i)=>{
-    const y=212+i*108;
-    if(ic){g.fillStyle='#fff';g.font='76px sans-serif';g.textAlign='center';g.fillText(ic,150,y)}
-    else{g.save();g.translate(150,y);g.scale(1.3,1.3);if(streak<=0)g.globalAlpha=.45;drawFlame(g,0,0,streak);g.restore()}
-    g.fillStyle='#fff';g.font='bold 60px system-ui,sans-serif';g.textAlign='left';g.fillText(lb,255,y);
-    g.fillStyle='#ffd54f';g.font='900 74px system-ui,sans-serif';g.textAlign='right';g.fillText(val,W-80,y)});
+  g.fillStyle='#ffe082';g.font='900 44px system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('📊 나의 기록',W/2,52);
+  [[40,'⚔️ 싸움',wins,streak,best],[820,'🏐 피구',dw,ds,db]].forEach(([x0,ttl,w,sr,bs])=>{
+    g.fillStyle='rgba(255,255,255,.08)';g.fillRect(x0,92,740,390);
+    g.fillStyle='#fff';g.font='900 52px system-ui,sans-serif';g.textAlign='center';g.fillText(ttl,x0+370,132);
+    [['🏆','승리한 수',w+'승'],[null,'현재 연승',sr+'연승'],['👑','최대 연승',bs+'연승']].forEach(([ic,lb,val],i)=>{
+      const y=228+i*104;
+      if(ic){g.fillStyle='#fff';g.font='56px sans-serif';g.textAlign='center';g.fillText(ic,x0+75,y)}
+      else{g.save();g.translate(x0+75,y);g.scale(.95,.95);if(sr<=0)g.globalAlpha=.45;drawFlame(g,0,0,sr);g.restore()}
+      g.fillStyle='#fff';g.font='bold 44px system-ui,sans-serif';g.textAlign='left';g.fillText(lb,x0+150,y);
+      g.fillStyle='#ffd54f';g.font='900 56px system-ui,sans-serif';g.textAlign='right';g.fillText(val,x0+715,y)})});
   recTex.needsUpdate=true}
 const grid=new THREE.GridHelper(50,25,0xb89a6a,0xb89a6a);grid.position.y=.02;S.add(grid);
 box(8,.1,6,0xc0392b,0,.05,6);
-label('🐾 고양이 로비',0,7,-18,2);
+label('🐾 고양이 로비',0,11,-24,2);
+// 로비 맨 뒤쪽 벽 + 피구 간판 (피구 패드는 이 벽 앞에 있어요)
+box(48.8,9,.6,0xe9e2d0,0,4.5,-24.7);
+(function(){const c=document.createElement('canvas');c.width=1024;c.height=256;const g=c.getContext('2d');
+  const gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#2e7d32');gr.addColorStop(1,'#1b5e20');g.fillStyle=gr;g.fillRect(0,0,1024,256);
+  g.strokeStyle='#ffe082';g.lineWidth=10;g.strokeRect(10,10,1004,236);g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';
+  g.font='900 96px system-ui,sans-serif';g.fillText('🏐 고양이 피구',512,95);g.font='bold 56px system-ui,sans-serif';g.fillStyle='#ffe082';g.fillText('1:1 · 3:3 · 5:5 · 7:7',512,190);
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(14,3.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c)}));m.position.set(4,7.2,-24.38);S.add(m)})();
 const PADZ=-10;
 // 1·2번 = 개인전, 3·4번 = 팀전(3:3)
 const PADS=[[-9,'solo',0x00e5ff,0x0097a7,'개인전 1'],[-3,'solo',0x00e5ff,0x0097a7,'개인전 2'],[3,'team',0xffb300,0xe65100,'팀전 3:3 (1)'],[9,'team',0xffb300,0xe65100,'팀전 3:3 (2)']].map(([x,m,c,e,t])=>{
@@ -131,6 +140,13 @@ const PADS=[[-9,'solo',0x00e5ff,0x0097a7,'개인전 1'],[-3,'solo',0x00e5ff,0x00
   label((m==='solo'?'🐱 ':'👥 ')+t,x,4.5,PADZ,1.1);
   return {x,m,pd,rg}});
 const pl=new THREE.PointLight(0xffffff,1,28);pl.position.set(0,4,PADZ);S.add(pl);
+// 로비 뒤쪽: 고양이 피구 패드 (1:1 / 3:3 / 5:5 / 7:7)
+const DPADZ=-21;
+const DPADS=[[-5,1],[1,3],[7,5],[13,7]].map(([x,n])=>{
+  const pd=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,.25,32),new THREE.MeshLambertMaterial({color:0x66bb6a,emissive:0x2e7d32}));pd.position.set(x,.12,DPADZ);S.add(pd);
+  const rg=new THREE.Mesh(new THREE.TorusGeometry(2.8,.12,8,40),new THREE.MeshBasicMaterial({color:0xc8e6c9}));rg.rotation.x=Math.PI/2;rg.position.set(x,.3,DPADZ);S.add(rg);
+  label('🏐 피구 '+n+':'+n,x,4.5,DPADZ,1.1);
+  return {x,n,pd,rg}});
 // 레슬링 링 (바닥 회색 / 끈 빨강 / 기둥 검정)
 const X0=100;
 box(50,1,50,0x2b2f3a,X0,-.5,0);
@@ -141,6 +157,19 @@ const rm=mat(0xd32f2f);
   let r=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,20,8),rm);r.rotation.z=Math.PI/2;r.position.set(X0,h,s);S.add(r);
   r=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,20,8),rm);r.rotation.x=Math.PI/2;r.position.set(X0+s,h,0);S.add(r)}));
 const rl=new THREE.PointLight(0xffffff,.7,70);rl.position.set(X0,14,0);S.add(rl);
+
+// 고양이 피구장 (넓은 코트, 링 아님): 중앙선 기준 왼쪽=우리 팀(파랑) / 오른쪽=상대 팀(빨강)
+const DX=-120;
+(function(){const geo=new THREE.ConeGeometry(30,18,4);geo.rotateY(Math.PI/4);const o=new THREE.Mesh(geo,mat(0x78909c));o.scale.set(72/42.43,1,44/42.43);o.rotation.x=Math.PI;o.position.set(DX,-10,0);S.add(o)})();
+box(72,1,44,0xcfd8dc,DX,-.5,0);
+box(60,.06,32,0xe0b87a,DX,-.01,0);
+[-1,1].forEach(sd=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(30,32),new THREE.MeshBasicMaterial({color:sd<0?0x2979ff:0xff1744,transparent:true,opacity:.22}));m.rotation.x=-Math.PI/2;m.position.set(DX+sd*15,.05,0);S.add(m)});
+box(.5,.04,32.4,0xffffff,DX,.04,0);box(.5,.04,32.4,0xffffff,DX-30.2,.04,0);box(.5,.04,32.4,0xffffff,DX+30.2,.04,0);
+box(60.9,.04,.5,0xffffff,DX,.04,-16.2);box(60.9,.04,.5,0xffffff,DX,.04,16.2);
+(function(){const r=new THREE.Mesh(new THREE.RingGeometry(3.6,4,40),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}));r.rotation.x=-Math.PI/2;r.position.set(DX,.06,0);S.add(r)})();
+box(62,1.2,.5,0x90a4ae,DX,.6,-17);box(62,1.2,.5,0x90a4ae,DX,.6,17);box(.5,1.2,34,0x90a4ae,DX-31,.6,0);box(.5,1.2,34,0x90a4ae,DX+31,.6,0);
+const dl=new THREE.PointLight(0xffffff,.6,100);dl.position.set(DX,18,0);S.add(dl);
+label('🏐 고양이 피구장',DX,9,-19,1.8);
 
 // ---------- 고양이 ----------
 const sp=new THREE.SphereGeometry(1,16,12);
@@ -162,6 +191,13 @@ const N=Array.from({length:6},()=>mkCat(0xff9a3c,0xfff1d6));N.forEach(f=>f.g.vis
 // 링에서 싸우는 AI: 아군 2 + 상대 3 (개인전은 상대 A 한 마리만 사용)
 const ALLIES=[0,1].map(()=>mkCat(0x6ab04c,0xe0f0d0)),FOES=[A,...[0,1].map(()=>mkCat(0x6a5acd,0xe6e0ff))];
 let mode='solo',F=[];
+const DG=Array.from({length:13},(_,i)=>{const f=mkCat(0x6a5acd,0xe6e0ff);f.g.visible=false;f.bot=true;f.team=i<6?0:1;return f}); // 피구 AI: 아군 6 + 상대 7
+function mkDMark(f){const mk=new THREE.Group();
+  f.mkR=new THREE.Mesh(new THREE.TorusGeometry(1.15,.1,6,28),new THREE.MeshBasicMaterial({color:0x2979ff}));f.mkR.rotation.x=Math.PI/2;f.mkR.position.y=.08;mk.add(f.mkR);
+  f.mkA=new THREE.Mesh(new THREE.ConeGeometry(.42,.85,8),new THREE.MeshBasicMaterial({color:0x2979ff}));f.mkA.rotation.x=Math.PI;f.mkA.position.y=4.5;mk.add(f.mkA);
+  f.cr=new THREE.Mesh(new THREE.TorusGeometry(2.4,.07,6,36),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.8}));f.cr.rotation.x=Math.PI/2;f.cr.position.y=.12;f.cr.visible=false;mk.add(f.cr);
+  mk.visible=false;f.mk=mk;f.g.add(mk)}
+DG.forEach(mkDMark);mkDMark(P);
 P.team=0;ALLIES.forEach(f=>{f.team=0;f.bot=true;f.g.visible=false});FOES.forEach(f=>{f.team=1;f.bot=true;f.g.visible=false});
 let st='lobby',inRing=false,cnt=0,shake=0;
 
@@ -233,8 +269,9 @@ function applyGlove(f,i){
 let inf=false,gold=0,own=[1,0,0];try{gold=+localStorage.getItem('catGold')||0;if(!isFinite(gold)||gold<0)gold=0;inf=localStorage.getItem('catInf')==='1';own=JSON.parse(localStorage.getItem('catOwn')||'[1,0,0]');own[0]=1}catch(e){}
 while(own.length<SK.length)own.push(0);if(!own[sk])sk=0;
 const saveOwn=()=>{try{localStorage.setItem('catOwn',JSON.stringify(own));localStorage.setItem('catGOwn',JSON.stringify(gown));localStorage.setItem('catGold',gold);localStorage.setItem('catInf',inf?1:0);localStorage.setItem('catSk',sk);localStorage.setItem('catGl',gv)}catch(e){}};
-let wins=0,streak=0,best=0;try{wins=+localStorage.getItem('catWins')||0;streak=+localStorage.getItem('catStk')||0;best=+localStorage.getItem('catBest')||0}catch(e){}
-const saveRec=()=>{try{localStorage.setItem('catWins',wins);localStorage.setItem('catStk',streak);localStorage.setItem('catBest',best)}catch(e){}};
+let wins=0,streak=0,best=0,dw=0,ds=0,db=0; // 싸움(wins/streak/best) · 피구(dw/ds/db)
+try{wins=+localStorage.getItem('catWins')||0;streak=+localStorage.getItem('catStk')||0;best=+localStorage.getItem('catBest')||0;dw=+localStorage.getItem('catDW')||0;ds=+localStorage.getItem('catDS')||0;db=+localStorage.getItem('catDB')||0}catch(e){}
+const saveRec=()=>{try{localStorage.setItem('catWins',wins);localStorage.setItem('catStk',streak);localStorage.setItem('catBest',best);localStorage.setItem('catDW',dw);localStorage.setItem('catDS',ds);localStorage.setItem('catDB',db)}catch(e){}};
 let tab='s';
 const fmt=n=>isFinite(n)?n.toLocaleString('ko-KR'):'∞';
 const dg=()=>inf?'∞':fmt(gold);
@@ -331,6 +368,7 @@ function anim(f,dt){
     else{kk=-1.7*sn;l=r=.6*sn}}
   else if(f.guard){l=r=-1.4}
   else if(st==='over'&&!f.ko){l=r=-3;f.g.position.y+=Math.abs(Math.sin(f.t*6))*.4}
+  if(mode==='dodge'&&f.mk&&f.mk.visible){if(f.catchT>0)l=r=-1.55;else if(f.thr>0){const q=1-f.thr/.3;l=r=-2.6+q*3.4}else if(f.ball)l=r=-1.05}
   f.arms[0].rotation.x=l;f.arms[1].rotation.x=r;if(kk)f.legs[0].rotation.x=kk;
   const tilt=f.stun>0?-.3:(f.at&&f.at.type==='jkick'?.5:0);f.g.rotation.x+=(tilt-f.g.rotation.x)*Math.min(1,dt*15);
   f.kt+=((f.ko?1:0)-f.kt)*Math.min(1,dt*6);f.g.rotation.z=f.kt*1.5;
@@ -396,7 +434,7 @@ function drawTag(f){const k=T[f.tier],g=f.tag.c.getContext('2d');f.tag.s.positio
   if(f.streak>0)drawFlame(g,128,38,f.streak);
   f.tag.t.needsUpdate=true}
 N.forEach(mkTag);mkTag(P);
-const nearPad=(x,z)=>PADS.some(q=>Math.hypot(x-q.x,z-PADZ)<4);
+const nearPad=(x,z)=>PADS.some(q=>Math.hypot(x-q.x,z-PADZ)<4)||DPADS.some(q=>Math.hypot(x-q.x,z-DPADZ)<4);
 function npcTarget(w){let x,z,k=0;do{x=(Math.random()*2-1)*20;z=(Math.random()*2-1)*20;k++}while(k<30&&nearPad(x,z));w.tx=x;w.tz=z;w.spd=2+Math.random()*2.2}
 function dressNPC(f){dressAI(f,0xe53935,-1);f.tier=pickTier();f.streak=Math.floor(Math.pow(Math.random(),1.6)*(4+f.tier*3));drawTag(f)}
 function spawnNPCs(){
@@ -548,7 +586,7 @@ function startMatch(m){
   inRing=true;st='count';N.forEach(f=>f.g.visible=false);P.tag.s.visible=false;drag=null;R.domElement.style.cursor='';tvNear=false;$('tvui').style.display='none';
   $('skins').style.display='none';$('cheat').style.display='block';cnt=3.99;lastCnt=0;$('msg').style.opacity=0;
   ALLIES.forEach(f=>f.g.visible=team);FOES.forEach((f,i)=>f.g.visible=team||i===0);
-  const al=team?ALLIES:[],fo=team?FOES:[A];F=[P,...al,...fo];F.forEach(reset);
+  const al=team?ALLIES:[],fo=team?FOES:[A];F=[P,...al,...fo];F.forEach(reset);P.g.visible=true;
   [...al,...fo].forEach(f=>{f.tier=pickTier();dressAI(f,T[f.tier].c,sk)});ot=A.tier;
   const zs=team?[0,-4.5,4.5]:[0];
   P.x=X0-5;P.z=0;P.a=Math.PI/2;
@@ -560,13 +598,198 @@ function startMatch(m){
   $('hud').style.display='flex';$('over').style.display='none';
   $('help').innerHTML='<b>좌클릭</b> 오른손 펀치 · <b>우클릭</b> 왼손 펀치 · <b>Space</b> 점프 · <b>E</b> 발차기 · <b>Space+E</b> 점프발차기 · <b>Shift</b> 막기 · <b>WASD</b> 이동'+(team?' · 👥 팀전: 아군 AI 2명과 3:3 (한 팀이 모두 쓰러지면 끝)':'');
 }
-function toLobby(){setRank();$('cheat').style.display='none';skinUI();$('skins').style.display='flex';recUI();P.tier=lv;P.streak=streak;P.tag.s.visible=true;drawTag(P);
+function toLobby(){dodgeCleanup();setRank();$('cheat').style.display='none';skinUI();$('skins').style.display='flex';recUI();P.tier=lv;P.streak=streak;P.tag.s.visible=true;drawTag(P);
   inRing=false;st='lobby';F=[];ALLIES.forEach(f=>f.g.visible=false);FOES.forEach(f=>f.g.visible=false);
-  reset(P);P.x=0;P.z=6;P.a=Math.PI;R.domElement.style.cursor='grab';tvNear=false;spawnNPCs();
+  P.g.visible=true;reset(P);P.x=0;P.z=6;P.a=Math.PI;R.domElement.style.cursor='grab';tvNear=false;spawnNPCs();
   $('hud').style.display='none';$('over').style.display='none';msg('',0);$('msg').style.opacity=0;
-  $('help').innerHTML='<b>WASD / 방향키</b>로 이동 · <b>Space</b> 점프 · 왼쪽 패드 2개=<b>개인전</b>, 오른쪽 패드 2개=<b>팀전(3:3)</b> · 왼쪽 위 <b>TV</b> 앞에서 AI 대결 중계 시청 · 화면을 <b>마우스로 드래그</b>하면 시점 회전';
+  $('help').innerHTML='<b>WASD / 방향키</b>로 이동 · <b>Space</b> 점프 · 왼쪽 패드 2개=<b>개인전</b>, 오른쪽 패드 2개=<b>팀전(3:3)</b> · 왼쪽 위 <b>TV</b> 앞에서 AI 대결 중계 시청 · 뒤쪽 4개 패드=<b>고양이 피구</b>(1:1 · 3:3 · 5:5 · 7:7) · 화면을 <b>마우스로 드래그</b>하면 시점 회전';
 }
-$('again').onclick=()=>startMatch(mode);$('lobby').onclick=toLobby;
+function restart(){if(mode==='dodge')startDodge(dn);else startMatch()}
+$('again').onclick=restart;$('lobby').onclick=toLobby;
+
+// ---------- 고양이 피구 ----------
+// E = 잡기(날아오는 공을 잡으면 던진 상대가 아웃), 좌클릭 = 던지기(마우스로 조준), 공에 맞으면 아웃, 장갑은 안 낌
+const G=16,BR=.55,LX=30.5,LZ=16.5;
+const BALLS=Array.from({length:4},()=>{const g=new THREE.Group();
+  const b=new THREE.Mesh(new THREE.SphereGeometry(BR,16,12),mat(0xff5252));b.castShadow=true;g.add(b);
+  const r=new THREE.Mesh(new THREE.TorusGeometry(BR,.06,6,20),mat(0xffffff));g.add(r);g.visible=false;S.add(g);
+  const sh=new THREE.Mesh(new THREE.CircleGeometry(.7,16),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.35}));sh.rotation.x=-Math.PI/2;sh.visible=false;S.add(sh);
+  return {m:g,sh,x:0,y:BR,z:0,vx:0,vy:0,vz:0,st:'loose',h:null,live:false,team:-1,th:null}});
+const aimMk=new THREE.Mesh(new THREE.TorusGeometry(.9,.1,8,24),new THREE.MeshBasicMaterial({color:0xffd600}));aimMk.rotation.x=Math.PI/2;aimMk.visible=false;S.add(aimMk);
+const aimPlane=new THREE.Plane(new THREE.Vector3(0,1,0),-1.4),rc=new THREE.Raycaster(),ndc=new THREE.Vector2(),aimPt=new THREE.Vector3(DX-8,1.4,0);
+const dB=t=>t?{x0:DX+1.3,x1:DX+29.5}:{x0:DX-29.5,x1:DX-1.3};
+let dn=1,dStall=0,dYaw=0,dPit=.843,dZ=1; // 피구 카메라(회전/기울기/확대)
+function hideGloves(f,h){f.gl.forEach(o=>o.visible=!h)}
+function startDodge(nn){
+  mode='dodge';dn=nn;dYaw=0;dPit=.843;dZ=1;
+  inRing=false;st='count';N.forEach(f=>f.g.visible=false);P.tag.s.visible=false;drag=null;R.domElement.style.cursor='crosshair';tvNear=false;$('tvui').style.display='none';
+  $('skins').style.display='none';$('cheat').style.display='block';cnt=3.99;lastCnt=0;$('msg').style.opacity=0;
+  ALLIES.forEach(f=>f.g.visible=false);FOES.forEach(f=>f.g.visible=false);DG.forEach(f=>{f.g.visible=false;f.mk.visible=false});
+  const al=DG.slice(0,nn-1),fo=DG.slice(6,6+nn),mem0=[...al];mem0.splice(Math.floor(nn/2),0,P);
+  F=[...mem0,...fo];
+  F.forEach(f=>{reset(f);Object.assign(f,{out:false,ball:null,catchT:0,catchCd:0,thr:0,thrCd:0,noPick:0,outT:0,dodge:null,reactB:null,wp:null,wpt:0,bt:0,hold:0,tgt:null});
+    f.g.visible=true;f.mk.visible=true;f.cr.visible=false;f.g.scale.setScalar(1)});
+  [...al,...fo].forEach(f=>{f.tier=pickTier();dressAI(f,0xe53935,sk);hideGloves(f,true)});
+  hideGloves(P,true);
+  [mem0,fo].forEach((mem,tm)=>mem.forEach((f,i)=>{const n=mem.length;
+    f.team=tm;f.x=DX+(tm?1:-1)*(6+(i%2)*5);f.z=n===1?0:-12+24*i/(n-1);f.a=tm?-Math.PI/2:Math.PI/2;
+    f.mkR.material.color.set(tm?0xff1744:0x2979ff);f.mkA.material.color.set(f===P?0xffd600:tm?0xff1744:0x2979ff)}));
+  dStall=0;serveBalls(nn);
+  Object.assign(sun.shadow.camera,{left:-42,right:42,top:34,bottom:-34,far:110});sun.shadow.camera.updateProjectionMatrix();
+  $('l1').textContent='🐱 우리 팀 생존';$('l2').textContent='상대 팀 생존';$('rt').innerHTML='';
+  flash();[400,600,900].forEach((f,i)=>setTimeout(()=>snd(f,.2,'triangle',.12),i*90));
+  $('hud').style.display='flex';$('over').style.display='none';
+  $('help').innerHTML='🏐 <b>피구 '+nn+':'+nn+'</b> · <b>WASD</b> 이동 · <b>Space</b> 점프(공 피하기) · <b>마우스</b> 조준 · <b>좌클릭</b> 던지기 · <b>E</b> 잡기(날아오는 공을 잡으면 던진 상대가 아웃!) · <b>드래그</b> 화면 돌리기 · <b>휠</b> 확대/축소 · 공에 맞으면 아웃 · 바닥 공은 걸어가서 줍기';
+}
+function serveBalls(nn){const nb=2;
+  BALLS.forEach((b,i)=>{b.m.visible=b.sh.visible=i<nb;if(i>=nb)return;Object.assign(b,{x:DX,z:(i-(nb-1)/2)*8,y:BR,vx:0,vy:0,vz:0,st:'loose',h:null,live:false,team:-1,th:null})})}
+function dodgeCleanup(){
+  if(typeof BALLS==='undefined')return;
+  BALLS.forEach(b=>{b.m.visible=b.sh.visible=false;b.st='loose';b.h=null});
+  DG.forEach(f=>{f.g.visible=false;f.mk.visible=false;f.ball=null});
+  P.g.visible=true;P.mk.visible=false;P.ball=null;P.out=false;P.catchT=0;P.thr=0;hideGloves(P,false);aimMk.visible=false;
+  Object.assign(sun.shadow.camera,{left:-30,right:30,top:30,bottom:-30,far:90});sun.shadow.camera.updateProjectionMatrix();
+  mode='solo';
+}
+function dJump(f){if(f.y<=.01&&!f.out&&st==='fight'){f.vy=13;snd(300,.15,'triangle',.08,300)}}
+function dCatch(f){if(f.out||f.ball||f.catchCd>0||st!=='fight')return;f.catchT=.6;f.catchCd=1.4;snd(520,.1,'triangle',.08)}
+function dThrow(f,tx,tz){
+  if(!f.ball||f.out||st!=='fight'||f.thrCd>0)return;
+  if(tx===undefined){tx=aimPt.x;tz=aimPt.z}
+  const b=f.ball,dx=tx-f.x,dz=tz-f.z,L=Math.hypot(dx,dz)||1,ux=dx/L,uz=dz/L,d=Math.max(1.5,Math.min(40,L)),v=28,t=d/v,y0=f.y+2;
+  f.a=Math.atan2(ux,uz);b.x=f.x+ux*.95;b.z=f.z+uz*.95;b.y=y0;b.vx=ux*v;b.vz=uz*v;b.vy=(1.5-y0+.5*G*t*t)/t;
+  b.st='fly';b.live=true;b.team=f.team;b.th=f;b.h=null;f.ball=null;f.thr=.3;f.thrCd=.4;f.noPick=.6;snd(300,.15,'sawtooth',.1,200)}
+function dDrop(c){if(!c.ball)return;const b=c.ball;c.ball=null;b.st='loose';b.h=null;b.live=false;b.vx=b.vz=0;b.vy=3}
+function dOut(c){
+  if(c.out)return;c.out=true;c.ko=true;c.outT=1.4;c.catchT=0;dDrop(c);snd(180,.4,'sawtooth',.15,-120);
+  if(c===P)msg('💥 아웃! 팀을 응원해요',1600);
+  dEnd();
+}
+function dEnd(){
+  if(st==='over')return;
+  const a0=F.filter(f=>f.team===0&&!f.out).length,a1=F.filter(f=>f.team===1&&!f.out).length;
+  if(a0&&a1)return;
+  st='over';const win=a0>0;msg(win?'🏆 승리!':'😿 패배...',0);
+  const foes=F.filter(f=>f.team===1),avg=Math.round(foes.reduce((q,f)=>q+f.tier,0)/foes.length);
+  const rw=win?100*(avg+1)*Math.ceil(dn/2):0;gold+=rw;
+  let sub=win?'🏆 피구 승리! (승점 변화 없음)':'😿 피구에서 졌어요... (승점 변화 없음)';
+  if(rw)sub+=' · 💰 +'+rw.toLocaleString('ko-KR')+'원';
+  if(win){dw++;ds++;if(ds>db)db=ds;if(ds>1)sub+=' · 🔥 '+ds+'연승!'}else ds=0;
+  saveRec();saveLv();setRank();
+  setTimeout(()=>{$('ot').textContent=win?'🏆 승리!':'😿 패배...';$('os').textContent=sub;$('over').style.display='flex'},900);
+  if(win)[523,659,784,1046].forEach((f,i)=>setTimeout(()=>snd(f,.25,'triangle',.15),i*140));
+}
+function ballStep(b,dt){
+  if(b.st==='held'){const h=b.h;b.x=h.x+Math.sin(h.a)*.95;b.y=h.y+1.9;b.z=h.z+Math.cos(h.a)*.95;b.vx=b.vy=b.vz=0;return}
+  const n=Math.ceil(dt/.012),d=dt/n;
+  for(let i=0;i<n;i++){
+    b.vy-=G*d;b.x+=b.vx*d;b.y+=b.vy*d;b.z+=b.vz*d;
+    if(b.x<DX-LX){b.x=DX-LX;b.vx=Math.abs(b.vx)*.6}else if(b.x>DX+LX){b.x=DX+LX;b.vx=-Math.abs(b.vx)*.6}
+    if(b.z<-LZ){b.z=-LZ;b.vz=Math.abs(b.vz)*.6}else if(b.z>LZ){b.z=LZ;b.vz=-Math.abs(b.vz)*.6}
+    if(b.y<BR){b.y=BR;if(b.vy<0){b.vy=-b.vy*.55;if(b.vy<1.5)b.vy=0}if(b.live){b.live=false;b.st='loose'}}
+    if(b.y<=BR+.01){const fr=Math.exp(-2.2*d);b.vx*=fr;b.vz*=fr}
+    if(b.live&&st==='fight'){
+      for(const c of F){
+        if(c.out||c.team===b.team)continue;
+        const dx=c.x-b.x,dz=c.z-b.z,dd=Math.hypot(dx,dz);
+        if(c.catchT>0&&!c.ball&&dd<2.4&&b.y<c.y+3.8&&b.y>c.y-.3){ // 잡기 성공: 던진 상대가 아웃
+          const th=b.th;b.st='held';b.h=c;c.ball=b;b.live=false;b.th=null;b.team=c.team;c.catchT=0;snd(700,.2,'triangle',.15);
+          if(c===P)msg('✋ 캐치! 던진 상대가 아웃!',1400);else if(th===P)msg('😵 공을 잡혔어요... 아웃!',1400);
+          if(th&&!th.out)dOut(th);
+          return}
+        if(dd<1.1&&b.y+BR>c.y+.2&&b.y-BR<c.y+3.4){ // 맞음: 아웃
+          b.live=false;b.st='loose';b.vx*=-.35;b.vz*=-.35;b.vy=Math.abs(b.vy)*.3+2;dOut(c);return}
+      }
+    }
+  }
+}
+function dPickup(){
+  if(st!=='fight')return;
+  for(const b of BALLS){if(!b.m.visible||b.st!=='loose'||b.y>2.4)continue;
+    for(const c of F){if(c.out||c.ball||c.noPick>0||c.thr>0)continue;
+      if(Math.hypot(c.x-b.x,c.z-b.z)<1.7){c.ball=b;b.st='held';b.h=c;b.live=false;b.team=c.team;b.th=null;c.hold=0;
+        if(c.bot)c.bt=.4+Math.random()*.9;else msg('🏐 공을 잡았어요! 마우스로 조준 → 좌클릭으로 던지기',1400);
+        snd(500,.08,'triangle',.08);break}}}
+}
+function dMove(f,dt){
+  f.t+=dt;f.vy-=30*dt;f.y=Math.max(0,f.y+f.vy*dt);if(f.y===0&&f.vy<0)f.vy=0;
+  let sx=0,sz=0;if(st==='fight'&&!f.out){sx=f.mvx;sz=f.mvz}
+  f.moving=Math.hypot(sx,sz)>.1;
+  const b=dB(f.team);f.x=clamp(f.x+sx*dt,b.x0,b.x1);f.z=clamp(f.z+sz*dt,-15.5,15.5);
+}
+function dBot(f,dt){
+  const spd=4.6+f.tier*.35,b=dB(f.team);
+  f.mvx=f.mvz=0;if(f.thr>0)return;
+  f.bt-=dt;f.wpt-=dt;
+  if(f.dodge&&f.dodge.t>0){f.dodge.t-=dt;f.mvx=f.dodge.x*spd*1.7;f.mvz=f.dodge.z*spd*1.7;return}
+  // 1) 날아오는 공: 잡기 / 점프 / 옆으로 피하기 (티어가 높을수록 잘 잡음)
+  let thr=null,tm=9;
+  for(const bl of BALLS){if(!bl.m.visible||bl.st!=='fly'||!bl.live||bl.team===f.team)continue;
+    const rx=f.x-bl.x,rz=f.z-bl.z,sp=Math.hypot(bl.vx,bl.vz)||1,al=(rx*bl.vx+rz*bl.vz)/sp;
+    if(al<0||al>18)continue;const pe=Math.abs(rx*bl.vz-rz*bl.vx)/sp;if(pe>2.3)continue;
+    const t=al/sp;if(t<tm){tm=t;thr=bl}}
+  if(thr&&f.reactB!==thr&&tm<.55){
+    f.reactB=thr;const r=Math.random(),pc=.1+.085*f.tier;
+    if(!f.ball&&f.catchCd<=0&&r<pc)dCatch(f);
+    else if(r<pc+.3)dJump(f);
+    else{const sp=Math.hypot(thr.vx,thr.vz)||1,sg=Math.random()<.5?1:-1;f.dodge={x:-thr.vz/sp*sg,z:thr.vx/sp*sg,t:.4}}
+  }
+  // 2) 공을 들고 있으면: 적을 골라 던지기
+  if(f.ball){
+    f.hold+=dt;
+    if(!f.tgt||f.tgt.out||f.hold>3){const al=F.filter(o=>o.team!==f.team&&!o.out);
+      f.tgt=Math.random()<.6?al.reduce((m,o)=>Math.hypot(o.x-f.x,o.z-f.z)<Math.hypot(m.x-f.x,m.z-f.z)?o:m,al[0]):al[Math.floor(Math.random()*al.length)]}
+    const t=f.tgt,dx=t.x-f.x,dz=t.z-f.z,d=Math.hypot(dx,dz),lineX=f.team?DX+2.5:DX-2.5;f.a=Math.atan2(dx,dz);
+    if(d>16)f.mvx=Math.sign(lineX-f.x)*Math.min(1,Math.abs(lineX-f.x))*spd;
+    if(Math.abs(dz)>2.5)f.mvz=Math.sign(dz)*spd*.6;
+    if(f.bt<=0&&f.thrCd<=0&&(d<22||f.hold>2.4)){
+      const T0=d/28,lead=.3+.1*f.tier,ang=Math.random()*6.283,rad=Math.sqrt(Math.random())*Math.max(.5,3.4-.45*f.tier);
+      dThrow(f,t.x+t.mvx*T0*lead+Math.cos(ang)*rad,t.z+t.mvz*T0*lead+Math.sin(ang)*rad);
+      f.hold=0;f.bt=.5+Math.random()*.8;f.tgt=null}
+    return}
+  // 3) 우리 쪽에 있는 공 주우러 가기
+  let best=null,bd=1e9;
+  for(const bl of BALLS){if(!bl.m.visible||bl.st!=='loose')continue;if(bl.x<b.x0-1.8||bl.x>b.x1+1.8)continue;
+    const d=Math.hypot(bl.x-f.x,bl.z-f.z);if(d<bd){bd=d;best=bl}}
+  if(best&&!F.some(o=>o!==f&&o.bot&&o.team===f.team&&!o.out&&!o.ball&&Math.hypot(best.x-o.x,best.z-o.z)<bd-1.5)){
+    const dx=best.x-f.x,dz=best.z-f.z,d=Math.hypot(dx,dz)||1;f.mvx=dx/d*spd;f.mvz=dz/d*spd;f.a=Math.atan2(dx,dz);return}
+  // 4) 공이 없으면 우리 진영에서 어슬렁
+  if(!f.wp||f.wpt<=0){const side=f.team?DX+1.3:DX-1.3,dir=f.team?1:-1;f.wp={x:side+dir*(3+Math.random()*14),z:(Math.random()*2-1)*13};f.wpt=1.5+Math.random()*2.5}
+  const dx=f.wp.x-f.x,dz=f.wp.z-f.z,d=Math.hypot(dx,dz);
+  if(d>.8){f.mvx=dx/d*spd*.6;f.mvz=dz/d*spd*.6}
+  let en=null,eb=1e9;for(const o of F)if(o.team!==f.team&&!o.out){const q=Math.hypot(o.x-f.x,o.z-f.z);if(q<eb){eb=q;en=o}}
+  if(en)f.a=Math.atan2(en.x-f.x,en.z-f.z);
+}
+function dHud(){[[0,'h1','n1'],[1,'h2','n2']].forEach(([t,b,n])=>{const c=F.filter(f=>f.team===t&&!f.out).length;
+  $(b).style.width=c/dn*100+'%';$(b).style.background=hpCol(c/dn*100);$(n).textContent=c+'명'})}
+function dodgeFrame(dt){
+  const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0),iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0),n=Math.hypot(ix,iz)||1;
+  ndc.set(mx/innerWidth*2-1,-(my/innerHeight)*2+1);rc.setFromCamera(ndc,cam);rc.ray.intersectPlane(aimPlane,aimPt);
+  const cs=Math.cos(dYaw),sn=Math.sin(dYaw);P.mvx=(ix*cs+iz*sn)/n*7;P.mvz=(iz*cs-ix*sn)/n*7; // 돌린 화면 기준으로 이동
+  if(st==='count'){cnt-=dt;const c=Math.ceil(cnt);
+    if(cnt<=0){st='fight';msg('시작!',900);snd(800,.3,'square',.12)}
+    else if(c!==lastCnt){lastCnt=c;if(c<=3){msg(String(c),0);snd(500,.15,'square',.1)}}
+    F.forEach(f=>{f.a=f.team?-Math.PI/2:Math.PI/2})}
+  else if(st==='fight')F.forEach(f=>{if(f.bot&&!f.out)dBot(f,dt)});
+  F.forEach(f=>{f.catchT-=dt;f.catchCd-=dt;f.thr-=dt;f.thrCd-=dt;f.noPick-=dt;dMove(f,dt)});
+  for(let i=0;i<F.length;i++)for(let j=i+1;j<F.length;j++){const a=F[i],b=F[j];if(a.out||b.out||a.team!==b.team)continue;
+    const dx=b.x-a.x,dz=b.z-a.z,dd=Math.hypot(dx,dz);if(dd<1.5&&dd>0){const k=(1.5-dd)/2/dd;a.x-=dx*k;a.z-=dz*k;b.x+=dx*k;b.z+=dz*k}}
+  if(!P.out&&st!=='count'){if(P.ball||P.catchT>0||P.thr>0)P.a=Math.atan2(aimPt.x-P.x,aimPt.z-P.z);else if(ix||iz)P.a=Math.atan2(P.mvx,P.mvz)}
+  BALLS.forEach(b=>{if(b.m.visible)ballStep(b,dt)});
+  dPickup();
+  if(st==='fight'){const idle=BALLS.every(b=>!b.m.visible||(b.st==='loose'&&Math.hypot(b.vx,b.vz)<.8&&b.y<.7));dStall=idle?dStall+dt:0;
+    if(dStall>7){dStall=0;serveBalls(dn);msg('🏐 공을 중앙선에 다시 놓았어요!',1400)}}
+  F.forEach(f=>{if(f.out&&f.outT>0){f.outT-=dt;if(f.outT<=0){f.g.visible=false;f.mk.visible=false}}});
+  F.forEach(f=>{if(f.g.visible){place(f);anim(f,dt);f.cr.visible=f.catchT>0&&!f.out}});
+  BALLS.forEach(b=>{if(!b.m.visible)return;b.m.position.set(b.x,b.y,b.z);b.m.rotation.x+=Math.hypot(b.vx,b.vz)*dt*.6;b.sh.position.set(b.x,.1,b.z);const s=clamp(1.1-b.y/10,.35,1);b.sh.scale.set(s,s,s)});
+  aimMk.visible=!!P.ball&&st==='fight'&&!P.out;aimMk.position.set(aimPt.x,.2,aimPt.z);
+  dHud();
+  // 카메라: 넓은 코트 전체가 보이게
+  const vf=cam.fov*Math.PI/180,D=Math.max(42,34/(Math.tan(vf/2)*cam.aspect))*.99*dZ,cp=Math.cos(dPit),k=1-Math.pow(drag&&drag.moved?1e-5:.001,dt);
+  camP.lerp(new THREE.Vector3(DX+Math.sin(dYaw)*cp*D,Math.sin(dPit)*D,Math.cos(dYaw)*cp*D),k);look.lerp(new THREE.Vector3(DX,0,0),k);
+  cam.position.copy(camP);cam.lookAt(look);
+  sun.position.set(DX+15,45,12);sun.target.position.set(DX,0,0);
+}
 
 // ---------- 입력 ----------
 const keys={};
@@ -574,26 +797,39 @@ addEventListener('keydown',e=>{keys[e.code]=1;initA();
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   if(e.code==='Escape'&&$('shop').style.display==='flex')$('sx').click();
   if(e.code==='KeyF'&&!e.repeat)toggleFS();
-  if((e.code==='KeyR'||e.code==='Enter')&&st==='over'&&$('over').style.display==='flex'){startMatch();return}
+  if((e.code==='KeyR'||e.code==='Enter')&&st==='over'&&$('over').style.display==='flex'){restart();return}
   if(st==='lobby'&&/^Digit[1-4]$/.test(e.code)&&nearTV())setCh(+e.code[5]-1);
   if(e.repeat)return;
-  if(e.code==='Space'){jump(P);if(keys.KeyE&&st==='fight')act(P,'jkick')}
-  if(e.code==='KeyE'){if(keys.Space&&st==='fight'){jump(P);act(P,'jkick')}else act(P,'kick')}});
+  const dg2=mode==='dodge'&&st!=='lobby';
+  if(e.code==='Space'){if(dg2)dJump(P);else{jump(P);if(keys.KeyE&&st==='fight')act(P,'jkick')}}
+  if(e.code==='KeyE'){if(dg2)dCatch(P);else if(keys.Space&&st==='fight'){jump(P);act(P,'jkick')}else act(P,'kick')}});
 addEventListener('keyup',e=>keys[e.code]=0);
-addEventListener('pointerdown',initA);
-addEventListener('mousedown',e=>{if(e.target.tagName==='BUTTON')return;if(e.button===0)act(P,'punch',0);if(e.button===2)act(P,'punch',1)});
+let mx=innerWidth/2,my=innerHeight/2;
+addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY});
+addEventListener('pointerdown',e=>{initA();mx=e.clientX;my=e.clientY});
+addEventListener('mousedown',e=>{if(e.target.tagName==='BUTTON')return;if(mode==='dodge'&&st!=='lobby')return;if(e.button===0)act(P,'punch',0);if(e.button===2)act(P,'punch',1)});
 addEventListener('contextmenu',e=>e.preventDefault());
 // 로비 시점 드래그 (링 안에서는 동작 안 함)
 let camYaw=0,camPit=Math.atan2(7,13),drag=null;const camDist=Math.hypot(7,13);
 const cv=R.domElement;cv.style.touchAction='none';
+const inDodge=()=>mode==='dodge'&&st!=='lobby';
 cv.addEventListener('pointerdown',e=>{
-  if(st!=='lobby'||(e.pointerType==='mouse'&&e.button!==0))return;
-  drag={id:e.pointerId,x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(_){}cv.style.cursor='grabbing'});
+  const dg=inDodge();
+  if(!(st==='lobby'||dg)||(e.pointerType==='mouse'&&e.button!==0))return;
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,moved:!dg}; // 로비: 바로 회전 / 피구: 살짝 클릭=던지기, 끌면=회전
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}if(!dg)cv.style.cursor='grabbing'});
 cv.addEventListener('pointermove',e=>{
-  if(!drag||e.pointerId!==drag.id||st!=='lobby')return;
-  camYaw-=(e.clientX-drag.x)*.006;camPit=clamp(camPit+(e.clientY-drag.y)*.005,.12,1.35);drag.x=e.clientX;drag.y=e.clientY});
-const endDrag=e=>{if(drag&&e.pointerId===drag.id){drag=null;cv.style.cursor=st==='lobby'?'grab':''}};
+  if(!drag||e.pointerId!==drag.id)return;
+  const dg=inDodge();if(!dg&&st!=='lobby')return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){drag.moved=true;cv.style.cursor='grabbing'}
+  if(!drag.moved)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(dg){dYaw-=dx*.006;dPit=clamp(dPit+dy*.005,.15,1.45)}else{camYaw-=dx*.006;camPit=clamp(camPit+dy*.005,.12,1.35)}
+  drag.x=e.clientX;drag.y=e.clientY});
+const endDrag=e=>{if(drag&&e.pointerId===drag.id){const was=drag;drag=null;cv.style.cursor=st==='lobby'?'grab':inDodge()?'crosshair':'';
+  if(e.type==='pointerup'&&inDodge()&&!was.moved)dThrow(P)}}; // 끌지 않고 뗐으면 던지기
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
+addEventListener('wheel',e=>{if(inDodge()){dZ=clamp(dZ*(1+Math.sign(e.deltaY)*.09),.4,1.7);e.preventDefault()}},{passive:false});
 
 const hpCol=h=>h>60?'#4caf50':h>35?'#f4d03f':h>15?'#ff9800':'#e53935';
 function hpUI(f,b,n){$(b).style.width=f.hp+'%';$(b).style.background=hpCol(f.hp);$(n).textContent=Math.ceil(f.hp)}
@@ -603,6 +839,8 @@ const camP=new THREE.Vector3(0,9,19),look=new THREE.Vector3();
 function update(dt){
   clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>280)c.position.x=-190});
   PADS.forEach((q,i)=>{q.pd.rotation.y+=dt;q.rg.position.y=.35+Math.sin(performance.now()/300+i)*.1});
+  DPADS.forEach((q,i)=>{q.pd.rotation.y+=dt;q.rg.position.y=.35+Math.sin(performance.now()/300+i+2)*.1});
+  if(mode==='dodge'&&st!=='lobby'){dodgeFrame(dt);return}
   // 플레이어 입력
   const ix=((keys.KeyD||keys.ArrowRight)?1:0)-((keys.KeyA||keys.ArrowLeft)?1:0),iz=((keys.KeyS||keys.ArrowDown)?1:0)-((keys.KeyW||keys.ArrowUp)?1:0);
   const n=Math.hypot(ix,iz)||1,spd=st==='lobby'?8:5.5;
@@ -621,7 +859,7 @@ function update(dt){
   step(P,dt,lim,ox);if(inRing){F.forEach(f=>{if(f!==P)step(f,dt,lim,ox)});F.forEach(f=>stepAtk(f,dt));
     for(let i=0;i<F.length;i++)for(let j=i+1;j<F.length;j++){const a=F[i],b=F[j];if(a.ko||b.ko)continue;const dx=b.x-a.x,dz=b.z-a.z,dd=Math.hypot(dx,dz);
       if(dd<1.5&&dd>0){const k=(1.5-dd)/2/dd;a.x-=dx*k;a.z-=dz*k;b.x+=dx*k;b.z+=dz*k}}}
-  if(st==='lobby'&&$('shop').style.display!=='flex'){const pd=PADS.find(q=>Math.hypot(P.x-q.x,P.z-PADZ)<2.3);if(pd)startMatch(pd.m)}
+  if(st==='lobby'&&$('shop').style.display!=='flex'){const pd=PADS.find(q=>Math.hypot(P.x-q.x,P.z-PADZ)<2.3);if(pd)startMatch(pd.m);else{const dp=DPADS.find(q=>Math.hypot(P.x-q.x,P.z-DPADZ)<2.3);if(dp)startDodge(dp.n)}}
   if(st==='lobby'){N.forEach(f=>{if(!f.g.visible)return;
     f.w.life-=dt;if(f.w.life<=0)respawnNPC(f);
     if(f.pop>0){f.pop-=dt;f.g.scale.setScalar(clamp(1-f.pop/.5,.15,1))}else if(f.g.scale.x!==1)f.g.scale.setScalar(1);
